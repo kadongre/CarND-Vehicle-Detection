@@ -2,6 +2,7 @@ import cv2
 import glob
 import time
 import numpy as np
+import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
 from skimage.feature import hog
@@ -107,7 +108,6 @@ def extract_features(image_file_names, colorspace):
 
 # the training pipeline
 def train(colorspace):
-    visualize_hog_features = False
     car_images = glob.glob('training/vehicles/*/*.png')
     noncar_images = glob.glob('training/non-vehicles/*/*.png')
 
@@ -368,12 +368,77 @@ def detect(rgb_image):
 
 
 def hog_features_visualization():
-    visualize_hog_image = True
+    car_images = glob.glob('training/vehicles/*.png')
+    noncar_images = glob.glob('training/non-vehicles/*.png')
+
+    index = 1
+    plt.figure(figsize=(10, 12))
+    for image_file_name in car_images:
+        rgb_image = mpimg.imread(image_file_name)
+        image, image_hog_features, image_hog_visualizations = get_hog_features(rgb_image, colorspace, feature_vector=False, concatenate_channels = False)
+
+        ax1 = plt.subplot(5, 4, index)
+        ax1.axis('off')
+        ax1.set_title('car')
+        plt.imshow(rgb_image)
+        index += 1
+
+        ax2 = plt.subplot(5, 4, index)
+        ax2.axis('off')
+        ax2.set_title('HOG - Y Channel')
+        plt.imshow(image_hog_visualizations[0], cmap='gray')
+        index += 1
+
+        ax3 = plt.subplot(5, 4, index)
+        ax3.axis('off')
+        ax3.set_title('HOG - Cr Channel')
+        plt.imshow(image_hog_visualizations[1], cmap='gray')
+        index += 1
+
+        ax4 = plt.subplot(5, 4, index)
+        ax4.axis('off')
+        ax4.set_title('HOG - Cb Channel')
+        plt.imshow(image_hog_visualizations[2], cmap='gray')
+        index += 1
+
+    plt.show()
+
+    index = 1
+    plt.figure(figsize=(10, 12))
+    for image_file_name in noncar_images:
+        rgb_image = mpimg.imread(image_file_name)
+        image, image_hog_features, image_hog_visualizations = get_hog_features(rgb_image, colorspace, feature_vector=False, concatenate_channels = False)
+
+        ax1 = plt.subplot(5, 4, index)
+        ax1.axis('off')
+        ax1.set_title('noncar')
+        plt.imshow(rgb_image)
+        index += 1
+
+        ax2 = plt.subplot(5, 4, index)
+        ax2.axis('off')
+        ax2.set_title('HOG - Y Channel')
+        plt.imshow(image_hog_visualizations[0], cmap='gray')
+        index += 1
+
+        ax3 = plt.subplot(5, 4, index)
+        ax3.axis('off')
+        ax3.set_title('HOG - Cr Channel')
+        plt.imshow(image_hog_visualizations[1], cmap='gray')
+        index += 1
+
+        ax4 = plt.subplot(5, 4, index)
+        ax4.axis('off')
+        ax4.set_title('HOG - Cb Channel')
+        plt.imshow(image_hog_visualizations[2], cmap='gray')
+        index += 1
+    plt.show()
 
 
 def detection_pipeline_exploration(colorspace, classifier, scaler):
     test_images = glob.glob('test_images/*.jpg')
     index = 1
+    plt.figure(figsize=(10, 12))
     for image_file_name in test_images:
         print("Testing detection pipeline for " + image_file_name)
         rgb_image = cv2.imread(image_file_name)
@@ -381,12 +446,26 @@ def detection_pipeline_exploration(colorspace, classifier, scaler):
         # result, debug = detect_using_sliding_window(rgb_image, colorspace, classifier, scaler, True)
         result, debug = detect_using_hog_subsampling(rgb_image, colorspace, classifier, scaler, True)
         prev_heatmaps.clear()
-        cv2.imwrite('debug_'+ str(index) + ".jpg", debug)
-        cv2.imwrite('result_'+ str(index) + ".jpg", result)
-        cv2.imshow('debug', debug)
-        cv2.imshow('result', result)
+
+        ax1 = plt.subplot(6, 3, index)
+        ax1.axis('off')
+        ax1.set_title(image_file_name)
+        plt.imshow(cv2.cvtColor(rgb_image, cv2.COLOR_BGR2RGB))
         index += 1
-        cv2.waitKey(0)
+
+        ax1 = plt.subplot(6, 3, index)
+        ax1.axis('off')
+        ax1.set_title('search windows')
+        plt.imshow(cv2.cvtColor(debug, cv2.COLOR_BGR2RGB))
+        index += 1
+
+        ax1 = plt.subplot(6, 3, index)
+        ax1.axis('off')
+        ax1.set_title('detected cars')
+        plt.imshow(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
+        index += 1
+
+    plt.show()
 
 
 # HOG settings for sliding window
@@ -398,18 +477,17 @@ def detection_pipeline_exploration(colorspace, classifier, scaler):
 orient = 8
 pix_per_cell = 8
 cell_per_block = 2
-
 prev_heatmaps = []
-visualize_hog_features = False
+colorspace = 'YCrCb'
 
-
+# visualize_hog_features = True
 # hog_features_visualization()
 
 # for colorspace in ['RGB', 'YUV', 'HLS', 'Lab', 'YCrCb']:
 #     print(colorspace)
 #     classifier, scaler = train(colorspace)
 
-colorspace = 'YCrCb'
+visualize_hog_features = False
 classifier, scaler = train(colorspace)
 
 # detection_pipeline_exploration(colorspace, classifier, scaler)
